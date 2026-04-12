@@ -21,6 +21,7 @@ Usage:
 
 import argparse
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -39,7 +40,7 @@ def apply_patches_if_needed():
 
         sp = site.getsitepackages()[0]
         patch_script = os.path.join(os.path.dirname(__file__), "apply_patches.py")
-        ret = os.system(f"{sys.executable} {patch_script} {sp}")
+        ret = subprocess.run([sys.executable, patch_script, sp], check=True)
         if ret != 0:
             print("ERROR: Failed to apply patches", file=sys.stderr)
             sys.exit(1)
@@ -138,13 +139,10 @@ def inject_mtp(source_path: str, quantized_path: str):
     print(f"\n{'='*60}")
     print("Injecting MTP weights...")
     print(f"{'='*60}\n")
-    ret = os.system(
-        f"{sys.executable} {inject_script} "
-        f"--source {source_path} --quantized {quantized_path}"
+    subprocess.run(
+        [sys.executable, inject_script, "--source", source_path, "--quantized", quantized_path],
+        check=True,
     )
-    if ret != 0:
-        print("ERROR: MTP injection failed", file=sys.stderr)
-        sys.exit(1)
 
 
 def main():
