@@ -1,0 +1,28 @@
+--- a/llmcompressor/utils/dev.py
++++ b/llmcompressor/utils/dev.py
+@@ -12,10 +12,22 @@ from loguru import logger
+ from safetensors.torch import save_file
+ from transformers import AutoModelForCausalLM, PreTrainedModel
+ try:
+-    from transformers.modeling_utils import TORCH_INIT_FUNCTIONS
++    # transformers >=5.x (if relocated)
++    from transformers.initialization import TORCH_INIT_FUNCTIONS
+ except ImportError:
+-    TORCH_INIT_FUNCTIONS = {}
++    try:
++        # transformers <5.0
++        from transformers.modeling_utils import TORCH_INIT_FUNCTIONS
++    except ImportError:
++        # Last resort: build the dict from torch.nn.init attributes.
++        # An empty dict is NOT acceptable — it makes skip_weights_initialize()
++        # a no-op, silently corrupting quantization calibration.
++        TORCH_INIT_FUNCTIONS = {
++            name: getattr(torch.nn.init, name)
++            for name in dir(torch.nn.init)
++            if callable(getattr(torch.nn.init, name))
++            and name.endswith("_")
++            and not name.startswith("__")
++        }
+ from transformers.utils import SAFE_WEIGHTS_INDEX_NAME, WEIGHTS_INDEX_NAME
+
+ __all__ = [

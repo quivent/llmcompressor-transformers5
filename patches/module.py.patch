@@ -1,0 +1,16 @@
+--- a/llmcompressor/utils/pytorch/module.py
++++ b/llmcompressor/utils/pytorch/module.py
+@@ -36,8 +36,10 @@ except Exception as _err:
+
+
+ try:
+-    from transformers.modeling_utils import Conv1D as TransformerConv1D
+-except Exception as _err:
++    from transformers.pytorch_utils import Conv1D as TransformerConv1D
++except ImportError:
++    try:
++        from transformers.modeling_utils import Conv1D as TransformerConv1D
++    except ImportError:
++        TransformerConv1D = None
+-    gpt_conv1d_err = _err
+-    TransformerConv1D = None
